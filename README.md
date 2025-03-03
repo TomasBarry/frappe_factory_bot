@@ -2,6 +2,39 @@
 
 A powerful factory library for Frappe that makes testing easier and more maintainable. Inspired by [Factory Boy](https://factoryboy.readthedocs.io/en/stable/index.html) and similar factory libraries.
 
+## Quick Setup
+
+1. Add Frappe Factory Bot to your app's `hooks.py`:
+```python
+required_apps = [
+    "git@github.com:gaia-family/frappe_factory_bot.git:main",
+    # ... your other required apps
+]
+```
+
+2. Create your first factory:
+```python
+from frappe_factory_bot.frappe_factory_bot.base_factory import BaseFactory
+
+class ProductFactory(BaseFactory):
+    doctype = "Product"  # The DocType name
+
+    @property
+    def default_attributes(self) -> dict[str, Any]:
+        return {
+            "name": "Test Product",
+            "price": 100,
+            "is_active": 1
+        }
+```
+
+3. Use it in your tests:
+```python
+def test_product():
+    product = ProductFactory.create()
+    assert product.price == 100
+```
+
 ## Why Use Factories?
 
 Factories help eliminate repetitive setup code in tests and make tests more maintainable. Consider this common pattern:
