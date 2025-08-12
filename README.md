@@ -7,7 +7,7 @@ A powerful factory library for Frappe that makes testing easier and more maintai
 1. Add Frappe Factory Bot to your app's `hooks.py`:
 ```python
 required_apps = [
-    "git@github.com:gaia-family/frappe_factory_bot.git:main",
+    "git@github.com:TomasBarry/frappe_factory_bot.git:main",
     # ... your other required apps
 ]
 ```
