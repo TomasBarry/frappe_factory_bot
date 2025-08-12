@@ -6,40 +6,41 @@ from frappe.model.document import Document
 
 
 class BaseFactory:
-    traits: list[str]
+    factory_traits: list[str]
     doctype: str
     overrides: dict[str, Any]
 
     @classmethod
-    def build(cls, traits: list[str] | None = None, **overrides: Any) -> Document:
-        instance = cls(traits)
+    def build(cls, *_factory_traits: str, **overrides: Any) -> Document:
+        instance = cls(*_factory_traits)
         instance.overrides = overrides
-        doctype = frappe.get_doc({"doctype": instance.doctype, **instance.attributes, **overrides})
+        # Assign doctype last so that it cannot be overridden
+        doctype = frappe.get_doc({**instance.attributes, **overrides, "doctype": instance.doctype})
 
         return doctype
 
     @classmethod
-    def build_list(cls, n: int, traits: list[str] | None = None, **overrides: Any) -> list[Document]:
-        return [cls.build(traits, **overrides) for _ in range(n)]
+    def build_list(cls, n: int, *_factory_traits: str, **overrides: Any) -> list[Document]:
+        return [cls.build(*_factory_traits, **overrides) for _ in range(n)]
 
     @classmethod
-    def create(cls, traits: list[str] | None = None, **overrides: Any) -> Document:
-        doctype = cls.build(traits, **overrides)
+    def create(cls, *_factory_traits: str, **overrides: Any) -> Document:
+        doctype = cls.build(*_factory_traits, **overrides)
         doctype.insert()
         cls._attach_del(doctype)
 
         return doctype
 
     @classmethod
-    def create_list(cls, n: int, traits: list[str] | None = None, **overrides: Any) -> list[Document]:
-        return [cls.create(traits, **overrides) for _ in range(n)]
+    def create_list(cls, n: int, *_factory_traits: str, **overrides: Any) -> list[Document]:
+        return [cls.create(*_factory_traits, **overrides) for _ in range(n)]
 
-    def __init__(self, traits: list[str] | None = None) -> None:
-        self.traits = traits or []
+    def __init__(self, *factory_traits: str) -> None:
+        self.factory_traits = list(factory_traits)
 
-        # Making sure that we don't use a raits that doesn't exist - it would be
+        # Making sure that we don't use a trait that does not exist - it would be
         # nice if we could do this at compile time but the typing is very funky.
-        # What we'd want to assert is that the instance atrribute `traits` is an
+        # What we'd want to assert is that the instance attribute `traits` is an
         # enum of what `valid_traits` below produces. We would want to declare
         # this type in `BaseFactory` and apply to each subclass in the context
         # of the subclass. It doesn't seem like this is possible in Python and
@@ -50,9 +51,9 @@ class BaseFactory:
             for name, value in self.__class__.__dict__.items()
             if isinstance(value, property) and name != "default_attributes"
         ]
-        if not set(self.traits).issubset(valid_traits):
+        if not set(self.factory_traits).issubset(valid_traits):
             raise TypeError(
-                f"traits ({self.traits}) must be a subset of the set of valid traits ({valid_traits})"
+                f"traits ({self.factory_traits}) must be a subset of the set of valid traits ({valid_traits})"
             )
 
     @classmethod
@@ -87,7 +88,11 @@ class BaseFactory:
 
     @property
     def attributes(self) -> dict[str, Any]:
-        return reduce(lambda acc, el: {**acc, **getattr(self, el)}, self.traits, self.default_attributes)
+        return reduce(
+            lambda acc, el: {**acc, **getattr(self, el)},
+            self.factory_traits,
+            self.default_attributes,
+        )
 
     @staticmethod
     def __del_override__(_self: Any) -> None:
