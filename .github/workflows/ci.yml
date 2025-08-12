@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - main
   pull_request:
 
 concurrency:
@@ -12,6 +13,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint-and-type-check:
+    runs-on: ubuntu-latest
+    name: Lint and Type Check
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy
+
+      - name: Run ruff linter
+        run: ruff check .
+
+      - name: Run mypy type checker
+        run: mypy --strict frappe_factory_bot/
+
   tests:
     runs-on: ubuntu-latest
     strategy:

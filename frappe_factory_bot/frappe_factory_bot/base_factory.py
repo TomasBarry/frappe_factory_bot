@@ -15,12 +15,16 @@ class BaseFactory:
         instance = cls(*_factory_traits)
         instance.overrides = overrides
         # Assign doctype last so that it cannot be overridden
-        doctype = frappe.get_doc({**instance.attributes, **overrides, "doctype": instance.doctype})
+        doctype = frappe.get_doc(
+            {**instance.attributes, **overrides, "doctype": instance.doctype}
+        )
 
         return doctype
 
     @classmethod
-    def build_list(cls, n: int, *_factory_traits: str, **overrides: Any) -> list[Document]:
+    def build_list(
+        cls, n: int, *_factory_traits: str, **overrides: Any
+    ) -> list[Document]:
         return [cls.build(*_factory_traits, **overrides) for _ in range(n)]
 
     @classmethod
@@ -32,7 +36,9 @@ class BaseFactory:
         return doctype
 
     @classmethod
-    def create_list(cls, n: int, *_factory_traits: str, **overrides: Any) -> list[Document]:
+    def create_list(
+        cls, n: int, *_factory_traits: str, **overrides: Any
+    ) -> list[Document]:
         return [cls.create(*_factory_traits, **overrides) for _ in range(n)]
 
     def __init__(self, *factory_traits: str) -> None:
