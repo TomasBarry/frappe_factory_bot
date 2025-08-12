@@ -147,7 +147,10 @@ def with_california_address(self) -> dict[str, Any]:
     }
 
 # Usage:
-store = StoreFactory.create(traits=["with_california_address"])
+store = StoreFactory.create("with_california_address")
+
+# You can also apply multiple traits:
+store = StoreFactory.create("with_california_address", "some_other_trait")
 ```
 
 3. Overrides - One-off customizations:
@@ -164,7 +167,7 @@ When multiple sources define the same attribute:
 
 ```python
 store = StoreFactory.create(
-    traits=["with_california_address"],
+    "with_california_address",
     store_name="Override Name"
 )
 # store_name will be "Override Name"
@@ -187,12 +190,12 @@ class OrderFactory(BaseFactory):
 
 # Usage:
 # This creates both an order and a customer
-order = OrderFactory.create(traits=["with_customer"])
+order = OrderFactory.create("with_customer")
 
 # This uses an existing customer without creating a new one
 existing_customer = CustomerFactory.create()
 order = OrderFactory.create(
-    traits=["with_customer"],
+    "with_customer",
     customer=existing_customer.name
 )
 ```
@@ -211,6 +214,59 @@ This pattern is important because:
 4. Use faker for generating realistic test data
 5. Consider using factory relationships to maintain data consistency
 6. Always check for overrides before creating related records
+
+## Testing
+
+Frappe Factory Bot includes comprehensive tests to ensure reliability and correctness. The test suite covers all core functionality including factory creation, traits, overrides, and edge cases.
+
+### Running Tests
+
+To run the BaseFactory tests, use Python's built-in unittest module:
+
+```bash
+# From the project root directory
+python -m unittest frappe_factory_bot.frappe_factory_bot.test_base_factory -v
+```
+
+If you have pytest installed, you can also use:
+
+```bash
+# From the project root directory
+python -m pytest frappe_factory_bot/frappe_factory_bot/test_base_factory.py -v
+```
+
+### Test Coverage
+
+The test suite includes 20+ comprehensive tests covering:
+
+- **Core Methods**: `build()`, `create()`, `build_list()`, `create_list()`
+- **Traits**: Application, combination, and validation
+- **Overrides**: Precedence and conflict resolution
+- **Edge Cases**: Invalid traits, empty defaults, doctype protection
+- **Internal Mechanisms**: Custom deletion handlers, attribute merging
+
+### Writing Factory Tests
+
+When writing tests for your own factories, follow these patterns:
+
+```python
+import unittest
+from your_app.factories import YourFactory
+
+class TestYourFactory(unittest.TestCase):
+    def test_factory_creates_valid_document(self):
+        doc = YourFactory.create()
+        self.assertIsNotNone(doc.name)
+        self.assertTrue(doc.is_active)
+
+    def test_factory_with_traits(self):
+        doc = YourFactory.create("with_special_status")
+        self.assertEqual(doc.status, "Special")
+
+    def test_factory_with_overrides(self):
+        doc = YourFactory.create(custom_field="Override Value")
+        self.assertEqual(doc.custom_field, "Override Value")
+```
 
 ## License
 
