@@ -4,7 +4,12 @@ A powerful factory library for Frappe that makes testing easier and more maintai
 
 ## Quick Setup
 
-1. Add Frappe Factory Bot to your app's `hooks.py`:
+1. Get the app:
+```bash
+bench get-app https://github.com/TomasBarry/frappe_factory_bot.git --branch main
+```
+
+2. Add Frappe Factory Bot to your app's `hooks.py`:
 ```python
 required_apps = [
     "git@github.com:TomasBarry/frappe_factory_bot.git:main",
@@ -12,7 +17,7 @@ required_apps = [
 ]
 ```
 
-2. Create your first factory:
+3. Create your first factory:
 ```python
 from frappe_factory_bot.frappe_factory_bot.base_factory import BaseFactory
 
@@ -28,7 +33,7 @@ class ProductFactory(BaseFactory):
         }
 ```
 
-3. Use it in your tests:
+4. Use it in your tests:
 ```python
 def test_product():
     product = ProductFactory.create()
