@@ -123,6 +123,31 @@ class TestBaseFactory(unittest.TestCase):
         self.assertEqual(result, self.mock_doc)
 
     @patch("frappe.get_doc")
+    def test_build_with_flags(self, mock_get_doc: MagicMock) -> None:
+        """Test that build() applies flags correctly"""
+        mock_get_doc.return_value = self.mock_doc
+        self.mock_doc.flags = {}
+
+        result = MockFactory.build(flags={"flag1": "value_1", "flag2": "value_2"})
+
+        mock_get_doc.assert_called_once_with(
+            {
+                "name": "Test Document",  # from default_attributes
+                "field1": "default_value1",  # from default_attributes
+                "field2": 100,  # from default_attributes
+                "is_active": 1,  # from default_attributes
+                "flags": {
+                    "flag1": "value_1",
+                    "flag2": "value_2",
+                },  # flags from override
+                "doctype": "Test DocType",
+            }
+        )
+        self.assertEqual(result, self.mock_doc)
+        self.assertEqual(result.flags["flag1"], "value_1")
+        self.assertEqual(result.flags["flag2"], "value_2")
+
+    @patch("frappe.get_doc")
     def test_build_precedence_order(self, mock_get_doc: MagicMock) -> None:
         """Test that overrides take precedence over traits, which take precedence over defaults"""
         mock_get_doc.return_value = self.mock_doc

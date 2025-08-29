@@ -18,6 +18,8 @@ class BaseFactory:
         doctype = frappe.get_doc(
             {**instance.attributes, **overrides, "doctype": instance.doctype}
         )
+        if flags := overrides.get("flags"):
+            doctype.flags.update(**flags)
 
         return doctype
 
