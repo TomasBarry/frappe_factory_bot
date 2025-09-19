@@ -14,10 +14,12 @@ class BaseFactory:
     def build(cls, *_factory_traits: str, **overrides: Any) -> Document:
         instance = cls(*_factory_traits)
         instance.overrides = overrides
+        flags = overrides.pop("flags", {})
         # Assign doctype last so that it cannot be overridden
         doctype = frappe.get_doc(
             {**instance.attributes, **overrides, "doctype": instance.doctype}
         )
+        doctype.flags.update(**flags)
 
         return doctype
 

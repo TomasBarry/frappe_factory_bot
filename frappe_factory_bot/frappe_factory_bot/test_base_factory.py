@@ -59,9 +59,24 @@ class TestBaseFactory(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up test environment"""
-        self.mock_doc = MagicMock(spec=TestDocType)
-        self.mock_doc.name = "test-document-001"
-        self.mock_doc.insert = MagicMock()
+        self.mock_doc = self._create_mock_document()
+
+    def _create_mock_document(self, name: str = "test-document-001") -> MagicMock:
+        """Create a properly configured mock document with common properties"""
+        mock_doc = MagicMock(spec=TestDocType)
+        mock_doc.name = name
+        mock_doc.insert = MagicMock()
+        mock_doc.flags = {}
+        return mock_doc
+
+    def _create_mock_documents(
+        self, count: int, name_prefix: str = "test-document"
+    ) -> list[MagicMock]:
+        """Create multiple properly configured mock documents with unique names"""
+        return [
+            self._create_mock_document(f"{name_prefix}-{i:03d}")
+            for i in range(1, count + 1)
+        ]
 
     @patch("frappe.get_doc")
     def test_build_creates_unsaved_document(self, mock_get_doc: MagicMock) -> None:
@@ -121,6 +136,27 @@ class TestBaseFactory(unittest.TestCase):
             }
         )
         self.assertEqual(result, self.mock_doc)
+
+    @patch("frappe.get_doc")
+    def test_build_with_flags(self, mock_get_doc: MagicMock) -> None:
+        """Test that build() applies flags correctly"""
+        mock_get_doc.return_value = self.mock_doc
+
+        result = MockFactory.build(flags={"flag1": "value_1", "flag2": "value_2"})
+
+        # `flags` should not propagate into `get_doc`
+        mock_get_doc.assert_called_once_with(
+            {
+                "name": "Test Document",  # from default_attributes
+                "field1": "default_value1",  # from default_attributes
+                "field2": 100,  # from default_attributes
+                "is_active": 1,  # from default_attributes
+                "doctype": "Test DocType",
+            }
+        )
+        self.assertEqual(result, self.mock_doc)
+        self.assertEqual(result.flags["flag1"], "value_1")
+        self.assertEqual(result.flags["flag2"], "value_2")
 
     @patch("frappe.get_doc")
     def test_build_precedence_order(self, mock_get_doc: MagicMock) -> None:
@@ -189,7 +225,7 @@ class TestBaseFactory(unittest.TestCase):
     @patch("frappe.get_doc")
     def test_build_list(self, mock_get_doc: MagicMock) -> None:
         """Test that build_list() creates multiple unsaved documents"""
-        mock_docs = [MagicMock(spec=TestDocType) for _ in range(3)]
+        mock_docs = self._create_mock_documents(3)
         mock_get_doc.side_effect = mock_docs
 
         result = MockFactory.build_list(3)
@@ -205,7 +241,7 @@ class TestBaseFactory(unittest.TestCase):
         self, mock_get_doc: MagicMock
     ) -> None:
         """Test that build_list() applies traits and overrides to all documents"""
-        mock_docs = [MagicMock(spec=TestDocType) for _ in range(2)]
+        mock_docs = self._create_mock_documents(2)
         mock_get_doc.side_effect = mock_docs
 
         result = MockFactory.build_list(2, "with_custom_name", field1="list_override")
@@ -227,7 +263,7 @@ class TestBaseFactory(unittest.TestCase):
     @patch("frappe.get_doc")
     def test_create_list(self, mock_get_doc: MagicMock) -> None:
         """Test that create_list() creates and saves multiple documents"""
-        mock_docs = [MagicMock(spec=TestDocType) for _ in range(3)]
+        mock_docs = self._create_mock_documents(3)
         mock_get_doc.side_effect = mock_docs
 
         with patch.object(MockFactory, "_attach_del") as mock_attach_del:
@@ -247,7 +283,7 @@ class TestBaseFactory(unittest.TestCase):
         self, mock_get_doc: MagicMock
     ) -> None:
         """Test that create_list() applies traits and overrides to all documents"""
-        mock_docs = [MagicMock(spec=TestDocType) for _ in range(2)]
+        mock_docs = self._create_mock_documents(2)
         mock_get_doc.side_effect = mock_docs
 
         with patch.object(MockFactory, "_attach_del") as mock_attach_del:
