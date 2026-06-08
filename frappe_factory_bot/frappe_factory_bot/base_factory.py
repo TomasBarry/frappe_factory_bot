@@ -1,17 +1,19 @@
 from functools import reduce
-from typing import Any
+from typing import Any, Generic, TypeVar, cast
 
 import frappe
 from frappe.model.document import Document
 
+T = TypeVar("T", bound=Document)
 
-class BaseFactory:
+
+class BaseFactory(Generic[T]):
     factory_traits: list[str]
     doctype: str
     overrides: dict[str, Any]
 
     @classmethod
-    def build(cls, *_factory_traits: str, **overrides: Any) -> Document:
+    def build(cls, *_factory_traits: str, **overrides: Any) -> T:
         instance = cls(*_factory_traits)
         instance.overrides = overrides
         # Assign doctype last so that it cannot be overridden
@@ -19,16 +21,16 @@ class BaseFactory:
             {**instance.attributes, **overrides, "doctype": instance.doctype}
         )
 
-        return doctype
+        return cast(T, doctype)
 
     @classmethod
     def build_list(
         cls, n: int, *_factory_traits: str, **overrides: Any
-    ) -> list[Document]:
+    ) -> list[T]:
         return [cls.build(*_factory_traits, **overrides) for _ in range(n)]
 
     @classmethod
-    def create(cls, *_factory_traits: str, **overrides: Any) -> Document:
+    def create(cls, *_factory_traits: str, **overrides: Any) -> T:
         doctype = cls.build(*_factory_traits, **overrides)
         doctype.insert()
         cls._attach_del(doctype)
@@ -38,7 +40,7 @@ class BaseFactory:
     @classmethod
     def create_list(
         cls, n: int, *_factory_traits: str, **overrides: Any
-    ) -> list[Document]:
+    ) -> list[T]:
         return [cls.create(*_factory_traits, **overrides) for _ in range(n)]
 
     def __init__(self, *factory_traits: str) -> None:
