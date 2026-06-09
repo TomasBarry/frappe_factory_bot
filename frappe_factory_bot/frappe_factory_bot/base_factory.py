@@ -1,5 +1,5 @@
 from functools import reduce
-from typing import Any, Generic, TypeVar, cast
+from typing import Any, Generic, TypeVar
 
 import frappe
 from frappe.model.document import Document
@@ -17,11 +17,12 @@ class BaseFactory(Generic[T]):
         instance = cls(*_factory_traits)
         instance.overrides = overrides
         # Assign doctype last so that it cannot be overridden
-        doctype = frappe.get_doc(
+        doctype: T = frappe.get_doc(
             {**instance.attributes, **overrides, "doctype": instance.doctype}
         )
+        doctype.flags.update(overrides.get("flags", {}))
 
-        return cast(T, doctype)
+        return doctype
 
     @classmethod
     def build_list(
