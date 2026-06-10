@@ -13,7 +13,7 @@ class TestDocType(Document):  # type: ignore
     pass
 
 
-class MockFactory(BaseFactory):
+class MockFactory(BaseFactory[TestDocType]):
     """Test factory for testing BaseFactory functionality"""
 
     doctype = "Test DocType"
@@ -40,7 +40,7 @@ class MockFactory(BaseFactory):
         return {"field2": 999, "field4": 42}
 
 
-class MockFactoryNoDefaults(BaseFactory):
+class MockFactoryNoDefaults(BaseFactory[Document]):
     """Test factory with no default attributes"""
 
     doctype = "Empty DocType"
