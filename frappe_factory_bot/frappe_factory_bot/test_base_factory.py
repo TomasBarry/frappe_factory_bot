@@ -10,7 +10,7 @@ from frappe_factory_bot.frappe_factory_bot.base_factory import BaseFactory
 class TestDocType(Document):  # type: ignore
     """Mock document type for testing"""
 
-    pass
+    flags: dict[str, Any] = {}
 
 
 class MockFactory(BaseFactory[TestDocType]):
