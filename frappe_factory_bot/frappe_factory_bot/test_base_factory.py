@@ -10,10 +10,10 @@ from frappe_factory_bot.frappe_factory_bot.base_factory import BaseFactory
 class TestDocType(Document):  # type: ignore
     """Mock document type for testing"""
 
-    pass
+    flags: dict[str, Any] = {}
 
 
-class MockFactory(BaseFactory):
+class MockFactory(BaseFactory[TestDocType]):
     """Test factory for testing BaseFactory functionality"""
 
     doctype = "Test DocType"
@@ -40,7 +40,7 @@ class MockFactory(BaseFactory):
         return {"field2": 999, "field4": 42}
 
 
-class MockFactoryNoDefaults(BaseFactory):
+class MockFactoryNoDefaults(BaseFactory[Document]):
     """Test factory with no default attributes"""
 
     doctype = "Empty DocType"
